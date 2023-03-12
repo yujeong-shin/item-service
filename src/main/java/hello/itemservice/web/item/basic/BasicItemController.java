@@ -1,4 +1,4 @@
-package hello.itemservice.web.basic;
+package hello.itemservice.web.item.basic;
 
 import hello.itemservice.domain.item.Item;
 import hello.itemservice.domain.item.ItemRepository;
@@ -37,11 +37,13 @@ public class BasicItemController {
         return "basic/item";
     }
 
-    @GetMapping("/add")
+    //상품 등록(Get) : 상품 등록 화면만 보여줌
+    @GetMapping("/add") //http주소로 들어온 값 /basic/items/add
     public String addForm() {
-        return "/basic/addForm";
+        return "/basic/addForm"; //반환할 뷰의 값 /templates/basic/addForm
     }
 
+    //상품 등록(Post) : Item 객체에 값을 넣고 상품 상세 화면으로 보여줌
     //@PostMapping("/add")
     public String addItemV1(@RequestParam String itemName,
                        @RequestParam int price,
@@ -92,16 +94,23 @@ public class BasicItemController {
     }
 
     /**
+     * V1~V4에서 새로 고침하면 마지막에 전송한 POST add + 상품 데이터 계속 전송
+     * 내용은 같고 ID만 다른 상품 데이터가 계속 등록된다.
      * PRG - Post/Redirect/Get
+     * 뷰 템플릿("basic/item")으로 이동X 상품 상세 화면으로 redirect
+     * 마지막에 전송한 내용을 GET /itemms/{itemId}로 바꿔준다.
      */
     //@PostMapping("/add")
     public String addItemV5(Item item) {
         itemRepository.save(item);
-        return "redirect:/basic/items/" + item.getId();
+        return "redirect:/basic/items/" + item.getId(); //PRG
     }
 
     /**
-     * RedirectAttributes
+     * RedirectAttributes - V5의 URL 인코딩 안되는 문제 개선
+     * URL 인코딩, pathVariable, 쿼리 파라미터까지 처리
+     * 상품 등록 시 상품 상세 화면에 "저장 완료!" 출력
+     * 그냥 상품 상세 화면에 들어갔으면 출력X
      */
     @PostMapping("/add")
     public String addItemV6(Item item, RedirectAttributes redirectAttributes) {
@@ -109,8 +118,12 @@ public class BasicItemController {
         redirectAttributes.addAttribute("itemId", savedItem.getId());
         redirectAttributes.addAttribute("status", true);
         return "redirect:/basic/items/{itemId}";
+        //basic/items/3?status=true
+        //pathVariable 바인딩 : {itemId}, 나머지는 쿼리 파라미터로 처리 : status=true
     }
 
+
+    //상품 수정(Get) : 상품 수정 화면만 보여줌
     @GetMapping("/{itemId}/edit")
     public String editForm(@PathVariable Long itemId, Model model) {
         Item item = itemRepository.findById(itemId);
@@ -118,6 +131,8 @@ public class BasicItemController {
         return "basic/editForm";
     }
 
+    //상품 수정(Post) : Item 객체의 값을 수정하고 상품 상세 화면으로 보여줌
+    //수정에서도 redirect를 사용했지만, redirect는 등록에서는 정말 중요하다 !
     @PostMapping("/{itemId}/edit")
     public String edit(@PathVariable Long itemId, @ModelAttribute Item item) {
         itemRepository.update(itemId, item);
@@ -129,8 +144,8 @@ public class BasicItemController {
      */
     @PostConstruct
     public void init() {
-        itemRepository.save(new Item("itemA", 10000, 10));
-        itemRepository.save(new Item("itemB", 20000, 20));
+        itemRepository.save(new Item("testA", 10000, 10));
+        itemRepository.save(new Item("testB", 20000, 20));
     }
 
 
